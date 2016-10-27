@@ -1,27 +1,27 @@
 package sample;
 
-import java.io.*;
-import java.net.ServerSocket;
-import java.nio.file.Path;
-import java.rmi.*;
 import com.healthmarketscience.rmiio.*;
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.io.InputStream;
+import com.healthmarketscience.rmiio.RemoteInputStream;
+import com.healthmarketscience.rmiio.RemoteInputStreamClient;
+
+import java.io.*;
+import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 
-import com.healthmarketscience.rmiio.RemoteInputStream;
-import com.healthmarketscience.rmiio.RemoteInputStreamClient;
-
 
 public class BackupServer extends UnicastRemoteObject implements FileInterface, Serializable{
 
+    private SavedFilesList savedFilesList;
+    File file = null;
+
+
     public BackupServer(String ip,int port) throws RemoteException{
         super(Registry.REGISTRY_PORT);
+        savedFilesList = new SavedFilesList();
+
         try{
             LocateRegistry.createRegistry(port);
             Naming.rebind("rmi://" + ip + ":"+ port +"/BackupServer", this);
@@ -33,11 +33,11 @@ public class BackupServer extends UnicastRemoteObject implements FileInterface, 
 
     }
 
-    public void sendFile(RemoteInputStream ris) throws IOException, RemoteException{
+    public void sendFile(RemoteInputStream ris, String filename, String extension) throws IOException, RemoteException{
         InputStream input = null;
         try{
             input = RemoteInputStreamClient.wrap(ris);
-            writeToFile(input);
+            writeToFile(input, filename, extension);
         }
 
         catch (Exception e){
@@ -47,11 +47,11 @@ public class BackupServer extends UnicastRemoteObject implements FileInterface, 
     }
 
 
-    public void writeToFile(InputStream stream) throws IOException, RemoteException {
+    public void writeToFile(InputStream stream, String filename, String extension) throws IOException, RemoteException {
         FileOutputStream output = null;
 
         try {
-            File file = File.createTempFile("data", ".mp4", new File("D:\\"));
+            file = File.createTempFile(filename, "", new File("D:\\ojojo"));
             output = new FileOutputStream(file);
             int chunk = 4096;
             byte [] result = new byte[chunk];
@@ -88,5 +88,12 @@ public class BackupServer extends UnicastRemoteObject implements FileInterface, 
         return input.export();
     }
 
-}
+    @Override
+    public boolean checkFileOnServer(String nameOfFile) throws RemoteException {
+        if(savedFilesList.fileOnList(nameOfFile))
+            return true;
+        else
+            return false;
+    }
 
+}

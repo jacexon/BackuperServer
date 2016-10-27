@@ -33,5 +33,6 @@ public class Main extends Application {
 
     public static void main(String[] args) {
         launch(args);
+        //String ext1 = FilenameUtils.getExtension("/path/to/file/foo.txt");
     }
 }

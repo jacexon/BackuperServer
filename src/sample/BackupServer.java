@@ -51,8 +51,9 @@ public class BackupServer extends UnicastRemoteObject implements FileInterface, 
         FileOutputStream output = null;
 
         try {
-            file = File.createTempFile(filename, "", new File("D:\\ojojo"));
+            file = File.createTempFile(filename, extension, new File("D:\\ojojo"));
             output = new FileOutputStream(file);
+
             int chunk = 4096;
             byte [] result = new byte[chunk];
 
@@ -64,12 +65,18 @@ public class BackupServer extends UnicastRemoteObject implements FileInterface, 
                 System.out.println("Zapisuje...");
             } while(readBytes != -1);
             System.out.println(file.length());
+
             output.flush();
         } catch (Exception e) {
             e.printStackTrace();
         } finally{
             if(output != null){
                 output.close();
+                if(file.renameTo(new File(file.getParent() + "\\" + filename + extension))){
+                    System.out.println("Rename succesful");
+                }else{
+                    System.out.println("Rename failed");
+                }
                 System.out.println("Zamykam strumień...");
             }
         }

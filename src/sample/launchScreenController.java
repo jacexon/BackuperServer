@@ -9,6 +9,7 @@ import javafx.scene.control.cell.PropertyValueFactory;
 import javafx.stage.Stage;
 
 import javax.annotation.Resource;
+import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.rmi.RemoteException;
@@ -34,7 +35,7 @@ public class launchScreenController {
 
 
 
-    public void handleLaunchButton(ActionEvent event) throws RemoteException {
+    public void handleLaunchButton(ActionEvent event) throws RemoteException, IOException {
         if ((!(port_textField.getText().isEmpty())) && (!(ip_textField.getText().isEmpty()))) {
             if (Integer.parseInt(port_textField.getText()) > 1024) {
                 BackupServer server = new BackupServer(ip_textField.getText(), Integer.parseInt(port_textField.getText()));

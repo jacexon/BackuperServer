@@ -16,6 +16,7 @@ import javafx.scene.control.cell.PropertyValueFactory;
 
 import javax.annotation.Resource;
 import java.net.URL;
+import java.util.Date;
 import java.util.ResourceBundle;
 
 import static javafx.collections.FXCollections.*;

@@ -10,18 +10,16 @@ import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
-import java.util.Properties;
+import java.sql.*;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 
 public class BackupServer extends UnicastRemoteObject implements FileInterface, Serializable{
 
-    private SavedFilesList savedFilesList;
-    File file = null;
-
 
     public BackupServer(String ip,int port) throws IOException {
         super(Registry.REGISTRY_PORT);
-        savedFilesList = new SavedFilesList();
 
         try{
             LocateRegistry.createRegistry(port);
@@ -34,23 +32,31 @@ public class BackupServer extends UnicastRemoteObject implements FileInterface, 
 
     }
 
-    public void sendFile(RemoteInputStream ris, String filename, String extension, long lastModified) throws IOException, RemoteException{
+    public void sendFile(RemoteInputStream ris,String filename, String extension, long lastModified) throws IOException, RemoteException{
         InputStream input = null;
         try{
             input = RemoteInputStreamClient.wrap(ris);
-            writeToFile(input, filename, extension, lastModified);
+            String path = writeToFile(input, filename, extension, lastModified);
+            Date date = new Date(lastModified);
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            String newdate = sdf.format(date);
+            Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/backuperdb","Jacek","password");
+            Statement st = conn.createStatement();
+            String query = "INSERT INTO backuperdb.files VALUES('" + filename + "','" + newdate + "', '3','" + path + "'";
+            st.executeUpdate(query);
+            System.out.println("Zapisano w bazie danych VALUES("+ filename + " " + newdate);
         }
 
         catch (Exception e){
-            e.printStackTrace();
+            e.getMessage();
         }
 
     }
 
 
-    public void writeToFile(InputStream stream, String filename, String extension, long lastModified) throws IOException, RemoteException {
+    public String writeToFile(InputStream stream, String filename, String extension, long lastModified) throws IOException, RemoteException {
         FileOutputStream output = null;
-
+        File file = null;
         try {
             file = File.createTempFile(filename, extension, new File("D:\\Server"));
             output = new FileOutputStream(file);
@@ -58,7 +64,7 @@ public class BackupServer extends UnicastRemoteObject implements FileInterface, 
             int chunk = 4096;
             byte [] result = new byte[chunk];
 
-            int readBytes = 0;
+            int readBytes;
             do {
                 readBytes = stream.read(result);
                 if (readBytes > 0)
@@ -68,22 +74,26 @@ public class BackupServer extends UnicastRemoteObject implements FileInterface, 
             System.out.println(file.length());
 
             output.flush();
+
+
         } catch (Exception e) {
             e.printStackTrace();
         } finally{
             if(output != null){
                 output.close();
-               if(file.renameTo(new File(file.getParent() + "\\" + filename + " " + file.lastModified() + extension))){
+               if(file.renameTo(new File(file.getParent() + "\\" + filename + "-v" + "3" + extension))){
+
                     System.out.println("Rename succesful");
                 }else{
                     System.out.println("Rename failed");
                 }
                 System.out.println("Zamykam strumień...");
             }
-        }
 
-        savedFilesList.addFileToList(file, lastModified);
-        //savedFilesList.getFilesList().
+
+        }
+        return file.getPath();
+
     }
 
 
@@ -99,14 +109,25 @@ public class BackupServer extends UnicastRemoteObject implements FileInterface, 
         return input.export();
     }
 
-    @Override
-    public boolean checkFileOnServer(String nameOfFile, long modifyDate) throws RemoteException {
-        return savedFilesList.fileOnList(nameOfFile, modifyDate);
-    }
+    public boolean checkFileOnServer(String name, Date date) throws RemoteException{
+        boolean lol = false;
+        try{
 
-    @Override
-    public Properties getSavedFilesList() throws RemoteException {
-        return savedFilesList.getFilesList();
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+            String newdate = sdf.format(date);
+            Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/backuperdb","Jacek","password");
+            Statement st = conn.createStatement();
+            ResultSet rs = st.executeQuery("SELECT name, lastmodified FROM files WHERE name=" + "'" + name + "'" + " AND date= "
+                    + "'" + newdate + "'");
+            if (rs.next()){
+                lol = true;
+            }
+            else lol = false;
+        }
+        catch (SQLException e){
+            e.getMessage();
+        }
+        return lol;
     }
 
 }

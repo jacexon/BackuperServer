@@ -3,19 +3,12 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
-import javafx.fxml.Initializable;
 import javafx.scene.control.*;
-import javafx.scene.control.cell.PropertyValueFactory;
-import javafx.stage.Stage;
-
-import javax.annotation.Resource;
 import java.io.IOException;
-import java.net.URL;
-import java.nio.file.Files;
 import java.rmi.RemoteException;
-import java.util.ResourceBundle;
 
-import static javafx.collections.FXCollections.*;
+
+
 
 public class launchScreenController {
     @FXML

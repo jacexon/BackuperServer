@@ -32,6 +32,7 @@ public class launchScreenController {
         if ((!(port_textField.getText().isEmpty())) && (!(ip_textField.getText().isEmpty()))) {
             if (Integer.parseInt(port_textField.getText()) > 1024) {
                 BackupServer server = new BackupServer(ip_textField.getText(), Integer.parseInt(port_textField.getText()));
+                server.getData();
                 running_label.setText("Server is running...");
             } else {
                 running_label.setText("Invalid port! Try again.");

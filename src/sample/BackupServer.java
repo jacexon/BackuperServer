@@ -4,6 +4,7 @@ import com.healthmarketscience.rmiio.*;
 import com.healthmarketscience.rmiio.RemoteInputStream;
 import com.healthmarketscience.rmiio.RemoteInputStreamClient;
 import com.sun.corba.se.spi.activation.Server;
+import com.sun.org.apache.xerces.internal.util.SynchronizedSymbolTable;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.control.Tab;
@@ -96,7 +97,6 @@ public class BackupServer extends UnicastRemoteObject implements FileInterface, 
 
 
         }
-        //return file.getParent() + File.separator + filename + "-v" + (Integer.parseInt(getVersion(filename))+1) + extension;
         return "D:\\\\Server\\\\" + filename + "-v" + (Integer.parseInt(getVersion(filename))+1) + extension;
 
     }
@@ -143,12 +143,15 @@ public class BackupServer extends UnicastRemoteObject implements FileInterface, 
             String newdate = sdf.format(date);
             Connection conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/backuperdb","Jacek","password");
             Statement st = conn.createStatement();
-            ResultSet rs = st.executeQuery("SELECT name, lastmodified FROM files WHERE name=" + "'" + name + "'" + " AND date= "
-                    + "'" + newdate + "'");
-            if (rs.next()){
+            ResultSet rs = st.executeQuery("SELECT * FROM backuperdb.files WHERE (filename=" + "'" + name + "'" + " AND lastmodified= "
+                    + "'" + newdate + "')");
+            rs.next();
+            if (rs.wasNull()){
+                lol = false;
+            }
+            else{
                 lol = true;
             }
-            else lol = false;
         }
         catch (SQLException e){
             e.getMessage();

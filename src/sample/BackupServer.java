@@ -96,7 +96,8 @@ public class BackupServer extends UnicastRemoteObject implements FileInterface, 
 
 
         }
-        return file.getParent() + "\\" + filename + "-v" + (Integer.parseInt(getVersion(filename))+1) + extension;
+        //return file.getParent() + File.separator + filename + "-v" + (Integer.parseInt(getVersion(filename))+1) + extension;
+        return "D:\\\\Server\\\\" + filename + "-v" + (Integer.parseInt(getVersion(filename))+1) + extension;
 
     }
 

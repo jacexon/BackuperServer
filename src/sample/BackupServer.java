@@ -3,12 +3,6 @@ package sample;
 import com.healthmarketscience.rmiio.*;
 import com.healthmarketscience.rmiio.RemoteInputStream;
 import com.healthmarketscience.rmiio.RemoteInputStreamClient;
-import com.sun.corba.se.spi.activation.Server;
-import com.sun.org.apache.xerces.internal.util.SynchronizedSymbolTable;
-import javafx.collections.FXCollections;
-import javafx.collections.ObservableList;
-import javafx.scene.control.Tab;
-
 import java.io.*;
 import java.rmi.Naming;
 import java.rmi.RemoteException;
@@ -145,12 +139,11 @@ public class BackupServer extends UnicastRemoteObject implements FileInterface, 
             Statement st = conn.createStatement();
             ResultSet rs = st.executeQuery("SELECT * FROM backuperdb.files WHERE (filename=" + "'" + name + "'" + " AND lastmodified= "
                     + "'" + newdate + "')");
-            rs.next();
-            if (rs.wasNull()){
-                lol = false;
+            if (rs.next()){
+                lol = true;
             }
             else{
-                lol = true;
+                lol = false;
             }
         }
         catch (SQLException e){

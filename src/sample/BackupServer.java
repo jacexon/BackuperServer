@@ -3,6 +3,8 @@ package sample;
 import com.healthmarketscience.rmiio.*;
 import com.healthmarketscience.rmiio.RemoteInputStream;
 import com.healthmarketscience.rmiio.RemoteInputStreamClient;
+import javafx.fxml.Initializable;
+
 import java.io.*;
 import java.rmi.Naming;
 import java.rmi.RemoteException;
@@ -17,8 +19,9 @@ import java.util.Date;
 
 public class BackupServer extends UnicastRemoteObject implements FileInterface, Serializable{
 
+    public int numberOfChunks;
     public BackupServer(String ip,int port) throws IOException {
-        super(Registry.REGISTRY_PORT);
+        super(port);
 
         try{
             LocateRegistry.createRegistry(port);
@@ -52,7 +55,7 @@ public class BackupServer extends UnicastRemoteObject implements FileInterface, 
 
     }
 
-
+    //TODO sprzątanie po tempFile'ach
     public String writeToFile(InputStream stream, String filename, String extension, long lastModified) throws IOException, RemoteException {
         FileOutputStream output = null;
         File file = null;
@@ -66,9 +69,10 @@ public class BackupServer extends UnicastRemoteObject implements FileInterface, 
             int readBytes;
             do {
                 readBytes = stream.read(result);
-                if (readBytes > 0)
+                if (readBytes > 0){
                     output.write(result, 0, readBytes);
-                System.out.println("Zapisuje...");
+                    numberOfChunks++;
+                }
             } while(readBytes != -1);
             System.out.println(file.length());
 
@@ -77,6 +81,7 @@ public class BackupServer extends UnicastRemoteObject implements FileInterface, 
 
         } catch (Exception e) {
             e.printStackTrace();
+            System.out.println("ELO");
         } finally{
             if(output != null){
                 output.close();
@@ -113,13 +118,34 @@ public class BackupServer extends UnicastRemoteObject implements FileInterface, 
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         ObjectOutputStream oos = new ObjectOutputStream(baos);
         oos.writeObject(getData());
-        System.out.println("Zapisałem obiekt!");
         oos.flush();
         oos.close();
         InputStream ois = new ByteArrayInputStream(baos.toByteArray());
         try{
             input = new SimpleRemoteInputStream(ois);
-            System.out.println("Zapisano do strumienia!");
+        }
+
+        catch (Exception e){
+            e.printStackTrace();
+        }
+        return input.export();
+
+    }
+
+    public int getChunk() throws RemoteException{
+        return numberOfChunks;
+    }
+
+    public RemoteInputStream chunkStream() throws RemoteException, IOException{
+        SimpleRemoteInputStream input = null;
+        ByteArrayOutputStream baos = new ByteArrayOutputStream();
+        ObjectOutputStream oos = new ObjectOutputStream(baos);
+        oos.writeInt(numberOfChunks);
+        oos.flush();
+        oos.close();
+        InputStream ois = new ByteArrayInputStream(baos.toByteArray());
+        try{
+            input = new SimpleRemoteInputStream(ois);
         }
 
         catch (Exception e){
@@ -197,9 +223,5 @@ public class BackupServer extends UnicastRemoteObject implements FileInterface, 
         }
             return srv;
     }
-
-
-
-
 
 }

@@ -15,9 +15,9 @@ public interface FileInterface extends Remote {
     public String writeToFile(InputStream stream, String filename, String extension, long lastModified) throws IOException, RemoteException;
 
     public RemoteInputStream passAStream(String filepath) throws RemoteException;
-
     public boolean checkFileOnServer(String name, Date date) throws RemoteException;
     public RemoteInputStream tableStream() throws RemoteException, IOException;
-
+    public RemoteInputStream chunkStream() throws RemoteException, IOException;
+    public int getChunk() throws RemoteException;
 
 }

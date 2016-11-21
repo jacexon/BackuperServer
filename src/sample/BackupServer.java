@@ -55,7 +55,6 @@ public class BackupServer extends UnicastRemoteObject implements FileInterface, 
 
     }
 
-    //TODO sprzątanie po tempFile'ach
     public String writeToFile(InputStream stream, String filename, String extension, long lastModified) throws IOException, RemoteException {
         FileOutputStream output = null;
         File file = null;
@@ -94,7 +93,6 @@ public class BackupServer extends UnicastRemoteObject implements FileInterface, 
                 System.out.println("Zamykam strumień...");
             }
 
-
         }
         return "D:\\\\Server\\\\" + filename + "-v" + (Integer.parseInt(getVersion(filename))+1) + extension;
 
@@ -111,6 +109,10 @@ public class BackupServer extends UnicastRemoteObject implements FileInterface, 
             e.printStackTrace();
         }
         return input.export();
+    }
+
+    public void resetChunks() throws RemoteException{
+        numberOfChunks = 0;
     }
 
     public RemoteInputStream tableStream() throws RemoteException, IOException{

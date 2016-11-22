@@ -6,6 +6,8 @@ import com.healthmarketscience.rmiio.RemoteInputStreamClient;
 import javafx.fxml.Initializable;
 
 import java.io.*;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.rmi.Naming;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
@@ -225,5 +227,56 @@ public class BackupServer extends UnicastRemoteObject implements FileInterface, 
         }
             return srv;
     }
+
+
+    public long getFileSize(String fName, String ver) throws RemoteException {
+        long fsize = 0L;
+
+        Connection conn = null;
+        try {
+            conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/backuperdb","Jacek","password");
+            Statement st = conn.createStatement();
+            ResultSet rs = st.executeQuery("SELECT * FROM backuperdb.files WHERE (filename=" + "'" + fName + "'" + " AND version= "
+                    + "'" + ver + "')");
+
+            if(rs.next()){
+                String filePath = rs.getString("path");
+                Path fPath = Paths.get(filePath);
+                File f = fPath.toFile();
+                fsize = f.length();
+            }
+
+
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+
+        return fsize;
+    }
+
+
+    public void deleteFile(String fName, String ver, String fPath) throws RemoteException{
+
+        Connection conn = null;
+        try {
+            conn = DriverManager.getConnection("jdbc:mysql://localhost:3306/backuperdb", "Jacek", "password");
+            Statement st = conn.createStatement();
+
+            Path path = Paths.get(fPath);
+            File f = path.toFile();
+            f.delete();
+
+            st.executeUpdate("DELETE FROM backuperdb.files WHERE (filename=" + "'" + fName + "'" + " AND version= "
+                    + "'" + ver + "')");
+
+
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+
+    }
+
 
 }
